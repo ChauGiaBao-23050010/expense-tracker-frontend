@@ -61,15 +61,39 @@ class APIClient {
             clearTimeout(timeoutId);
 
             // Kiểm tra Content-Type trước khi parse JSON (tránh lỗi khi response rỗng)
-            const contentType = response.headers.get('content-type');
-            let data = null;
+// Xóa timeout
+            clearTimeout(timeoutId);
 
-            if (contentType && contentType.includes('application/json')) {
-                data = await response.json();
-            } else if (response.status !== 204) { // 204 No Content thường không có body
-                // Nếu không phải JSON và không phải 204, thử đọc text (để debug hoặc xử lý lỗi)
-                data = await response.text(); 
+            let data = null;
+            // 1. Ưu tiên kiểm tra 204 No Content trước
+            if (response.status === 204) {
+                data = {}; // Trả về object rỗng để Frontend không bị lỗi khi cố gắng dùng 'data'
+            } else {
+                // 2. Sau đó, kiểm tra Content-Type để parse JSON
+                const contentType = response.headers.get('content-type');
+                if (contentType && contentType.includes('application/json')) {
+                    // Đảm bảo không đọc JSON nếu Content-Length là 0 (hoặc nếu là 204)
+                    try {
+                        data = await response.json();
+                    } catch (jsonError) {
+                        console.warn("API returned non-JSON or empty JSON for status " + response.status, jsonError);
+                        data = {}; // Xử lý lỗi JSON bằng cách trả về object rỗng
+                    }
+                } else {
+                    // 3. Fallback nếu không phải JSON (có thể là HTML lỗi, plain text)
+                    data = await response.text(); 
+                    if (data === '') data = {}; // Nếu text rỗng, cũng coi như object rỗng
+                }
             }
+            
+            if (!response.ok) {
+                // ... (Logic xử lý lỗi 401 và các lỗi khác của bạn đã tốt)
+                // Đảm bảo errorMessage cũng có thể lấy từ data nếu data là object rỗng
+                const errorMessage = (data && data.detail) ? data.detail : (typeof data === 'string' && data !== '' ? data : 'Có lỗi xảy ra');
+                throw new Error(errorMessage);
+            }
+            
+            return data;
 
             if (!response.ok) {
                 // Nếu lỗi 401 (Unauthorized), có thể token hết hạn -> Logout
