@@ -2,62 +2,69 @@
 let currentBudgets = []; 
 
 document.addEventListener('DOMContentLoaded', async () => {
-    // Load User Info (giữ nguyên logic gốc)
+    // 1. Load User Info (Header)
     try {
         const user = await api.request('/users/me');
-        document.getElementById('user-name-display').textContent = user.full_name || user.username;
-        document.getElementById('user-avatar').src = `https://ui-avatars.com/api/?name=${user.full_name || user.username}&background=random&color=fff`;
+        const nameDisplay = document.getElementById('user-name-display');
+        const avatarDisplay = document.getElementById('user-avatar');
+        
+        if (nameDisplay) nameDisplay.textContent = user.full_name || user.username;
+        if (avatarDisplay) avatarDisplay.src = `https://ui-avatars.com/api/?name=${user.full_name || user.username}&background=random&color=fff`;
     } catch (e) { console.error("Error loading user info:", e); }
 
-    // Khởi tạo các hàm cần thiết
-    initDateSelectors();
-    await loadCategories();
-    await loadBudgets(); // Gọi hàm tải và render bảng
+    // 2. Khởi tạo dữ liệu
+    initDateSelectors(); // Tạo option cho dropdown tháng/năm
+    await loadCategories(); // Tải danh sách danh mục
+    await loadBudgets(); // Tải danh sách ngân sách
 
-    // Gắn sự kiện cho form
-    document.getElementById('budgetForm').addEventListener('submit', handleSaveBudget);
-    
-    // Đảm bảo nút "Thêm mới" gọi hàm prepareAddMode
-    const addBtn = document.querySelector('button[data-bs-target="#budgetModal"]');
-    if(addBtn) {
-        addBtn.setAttribute('onclick', 'prepareAddMode()');
+    // 3. Gắn sự kiện submit form
+    const budgetForm = document.getElementById('budgetForm');
+    if (budgetForm) {
+        budgetForm.addEventListener('submit', handleSaveBudget);
     }
 });
 
-// Khởi tạo dropdown tháng/năm
+// --- CÁC HÀM KHỞI TẠO ---
+
 function initDateSelectors() {
-    const now = new Date();
-    // Thay đổi: Không cần currentMonthDisplay vì HTML mới đã có tiêu đề tĩnh
     const monthSelect = document.getElementById('month');
     const yearSelect = document.getElementById('year');
+    const now = new Date();
 
-    // Nếu monthSelect/yearSelect không tồn tại (vì đã xóa trong HTML mới), bỏ qua
-    if (!monthSelect || !yearSelect) return; 
-
-    // Reset nội dung
-    monthSelect.innerHTML = '';
-    yearSelect.innerHTML = '';
-
-    // Tháng 1-12
-    for (let i = 1; i <= 12; i++) {
-        monthSelect.innerHTML += `<option value="${i}" ${i === now.getMonth() + 1 ? 'selected' : ''}>Tháng ${i}</option>`;
+    if (monthSelect) {
+        monthSelect.innerHTML = '';
+        for (let i = 1; i <= 12; i++) {
+            const selected = (i === now.getMonth() + 1) ? 'selected' : '';
+            monthSelect.innerHTML += `<option value="${i}" ${selected}>Tháng ${i}</option>`;
+        }
     }
-    // Năm (Năm nay và năm sau)
-    yearSelect.innerHTML += `<option value="${now.getFullYear()}" selected>${now.getFullYear()}</option>`;
-    yearSelect.innerHTML += `<option value="${now.getFullYear() + 1}">${now.getFullYear() + 1}</option>`;
+
+    if (yearSelect) {
+        yearSelect.innerHTML = '';
+        const currentYear = now.getFullYear();
+        // Cho phép chọn năm nay và năm sau
+        yearSelect.innerHTML += `<option value="${currentYear}" selected>${currentYear}</option>`;
+        yearSelect.innerHTML += `<option value="${currentYear + 1}">${currentYear + 1}</option>`;
+    }
 }
 
 async function loadCategories() {
     try {
         const cats = await api.request('/categories/');
         const catSelect = document.getElementById('category_id');
+        
+        if (!catSelect) return;
         catSelect.innerHTML = '';
         
-        // Chỉ lấy danh mục CHI TIÊU (EXPENSE)
+        // Chỉ lấy danh mục CHI TIÊU (EXPENSE) vì ngân sách thường đặt cho chi tiêu
         const expenseCats = cats.filter(c => c.type === 'EXPENSE');
         
+        if (expenseCats.length === 0) {
+            catSelect.innerHTML = '<option value="" disabled>Chưa có danh mục chi tiêu nào</option>';
+            return;
+        }
+
         expenseCats.forEach(c => {
-            // Hiển thị tên danh mục trong option
             catSelect.innerHTML += `<option value="${c.id}">${c.icon || '📁'} ${c.name}</option>`;
         });
     } catch (e) { console.error("Error loading categories:", e); }
@@ -67,17 +74,14 @@ async function loadBudgets() {
     const tbody = document.getElementById('budget-table-body');
     if (!tbody) return; 
     
-    tbody.innerHTML = '<tr><td colspan="5" class="text-center text-primary"><i class="fas fa-spinner fa-spin"></i> Đang tải ngân sách...</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="5" class="text-center text-primary"><i class="fas fa-spinner fa-spin"></i> Đang tải dữ liệu...</td></tr>';
 
     try {
-        // Mặc định gọi API không tham số để lấy tháng hiện tại
+        // Lấy toàn bộ ngân sách (Backend có thể trả về list các tháng)
+        // Nếu muốn filter theo tháng hiện tại, có thể thêm query param: ?month=...&year=...
         const budgets = await api.request('/budgets/');
-        
-        // Lưu lại dữ liệu cho việc sửa
-        currentBudgets = budgets; 
-
+        currentBudgets = budgets; // Lưu lại để dùng khi bấm Sửa
         renderTable(budgets);
-
     } catch (e) {
         tbody.innerHTML = `<tr><td colspan="5" class="text-center text-danger">Lỗi: ${e.message}</td></tr>`;
     }
@@ -85,15 +89,16 @@ async function loadBudgets() {
 
 function renderTable(budgets) {
     const tbody = document.getElementById('budget-table-body');
+    if (!tbody) return;
     tbody.innerHTML = '';
 
-    if (budgets.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted py-3">Chưa có ngân sách nào cho tháng này. Hãy tạo mới!</td></tr>';
+    if (!budgets || budgets.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted py-3">Chưa có ngân sách nào. Hãy tạo mới!</td></tr>';
         return;
     }
 
     budgets.forEach(b => {
-        const spent = b.spent_amount;
+        const spent = b.spent_amount || 0;
         const limit = b.amount;
         const percent = limit > 0 ? (spent / limit) * 100 : 0;
         
@@ -103,15 +108,22 @@ function renderTable(budgets) {
         if (percent > 100) { progressClass = 'bg-danger'; statusText = 'Vượt mức!'; }
         else if (percent > 80) { progressClass = 'bg-warning'; statusText = 'Sắp hết'; }
         
-        // Giới hạn thanh max 100% để không vỡ layout
         const widthPercent = percent > 100 ? 100 : percent;
 
         const row = `
             <tr>
-                <td><span class="me-2">${b.category_icon || '📁'}</span> ${b.category_name}</td>
+                <td>
+                    <div class="d-flex align-items-center">
+                        <span class="me-2 fs-5">${b.category_icon || '📁'}</span>
+                        <div>
+                            <div class="fw-bold">${b.category_name}</div>
+                            <small class="text-muted">Tháng ${b.month}/${b.year}</small>
+                        </div>
+                    </div>
+                </td>
                 <td class="text-end text-success fw-bold">${formatMoney(limit)}</td>
                 <td class="text-end text-danger">${formatMoney(spent)}</td>
-                <td>
+                <td style="min-width: 150px;">
                     <div class="progress" style="height: 20px;">
                         <div class="progress-bar ${progressClass} progress-bar-striped" 
                              role="progressbar" style="width: ${widthPercent}%">
@@ -121,14 +133,14 @@ function renderTable(budgets) {
                     <small class="text-muted d-block text-end">${statusText}</small>
                 </td>
                 <td class="text-center">
-                    <button class="btn btn-sm btn-warning me-1" 
+                    <button class="btn btn-sm btn-outline-primary me-1" 
                         data-bs-toggle="modal" 
                         data-bs-target="#budgetModal" 
                         onclick="prepareEditMode(${b.id})">
-                        <i class="fas fa-edit"></i> Sửa
+                        <i class="fas fa-edit"></i>
                     </button>
-                    <button class="btn btn-sm btn-danger" onclick="deleteBudget(${b.id})">
-                        <i class="fas fa-trash"></i> Xóa
+                    <button class="btn btn-sm btn-outline-danger" onclick="deleteBudget(${b.id})">
+                        <i class="fas fa-trash"></i>
                     </button>
                 </td>
             </tr>
@@ -137,96 +149,113 @@ function renderTable(budgets) {
     });
 }
 
-// Hàm Thêm mới: Mở Modal ở chế độ thêm
+// --- CÁC HÀM XỬ LÝ SỰ KIỆN ---
+
+// Chế độ THÊM MỚI
 window.prepareAddMode = function() {
-    document.getElementById('budgetForm').reset();
-    document.getElementById('budgetId').value = '';
+    const form = document.getElementById('budgetForm');
+    if (form) form.reset();
+
+    document.getElementById('budgetId').value = ''; // ID rỗng -> Thêm mới
     document.getElementById('modalTitle').textContent = "Thêm Ngân sách mới";
     
-    // Mở lại dropdown tháng/năm và set lại giá trị mặc định
-    document.getElementById('category_id').disabled = false;
-    
-    // Sử dụng initDateSelectors để set lại tháng/năm hiện tại
-    initDateSelectors();
+    // Mở khóa các trường (vì thêm mới được quyền chọn tháng/năm/danh mục)
     document.getElementById('month').disabled = false;
     document.getElementById('year').disabled = false;
+    document.getElementById('category_id').disabled = false;
+
+    // Reset về tháng hiện tại
+    initDateSelectors();
 }
 
-// Hàm Sửa: Mở Modal và điền dữ liệu
+// Chế độ CHỈNH SỬA
 window.prepareEditMode = function(id) {
     const budget = currentBudgets.find(b => b.id === id);
     if (!budget) return;
 
-    document.getElementById('modalTitle').textContent = `Cập nhật Ngân sách cho ${budget.category_name}`;
+    document.getElementById('modalTitle').textContent = `Cập nhật Ngân sách`;
     document.getElementById('budgetId').value = budget.id;
-    document.getElementById('category_id').value = budget.category_id;
     document.getElementById('amount').value = budget.amount;
     
-    // Khóa/Điền dropdown tháng và năm (Không cho sửa tháng/năm/danh mục khi cập nhật)
+    // Điền giá trị cũ
     document.getElementById('month').value = budget.month;
     document.getElementById('year').value = budget.year;
+    document.getElementById('category_id').value = budget.category_id;
+
+    // Khóa các trường không được sửa (logic backend thường không cho sửa key)
     document.getElementById('month').disabled = true;
     document.getElementById('year').disabled = true;
     document.getElementById('category_id').disabled = true;
 }
 
-// Xử lý Lưu (Thêm mới hoặc Cập nhật)
+// Xử lý LƯU (Submit Form)
 async function handleSaveBudget(e) {
     e.preventDefault();
+    
     const id = document.getElementById('budgetId').value;
-    const isEdit = !!id;
+    const isEdit = !!id; // Nếu có ID là đang sửa
 
-    // Dữ liệu cần gửi đi
-    const data = {
-        amount: parseFloat(document.getElementById('amount').value),
-    };
+    // Lấy dữ liệu từ form
+    const amount = parseFloat(document.getElementById('amount').value);
     
-    let method, url;
-
-    if (isEdit) {
-        // CHẾ ĐỘ SỬA: Chỉ cần gửi amount
-        method = 'PUT';
-        url = `/budgets/${id}`;
-    } else {
-        // CHẾ ĐỘ THÊM MỚI: Cần gửi month, year, category_id, amount
-        method = 'POST';
-        url = '/budgets/';
-        data.month = parseInt(document.getElementById('month').value);
-        data.year = parseInt(document.getElementById('year').value);
-        data.category_id = parseInt(document.getElementById('category_id').value);
+    // Validate cơ bản
+    if (isNaN(amount) || amount <= 0) {
+        alert("Vui lòng nhập số tiền hợp lệ!");
+        return;
     }
-    
+
     try {
+        let url, method, bodyData;
+
+        if (isEdit) {
+            // SỬA: Chỉ gửi amount (PUT)
+            url = `/budgets/${id}`;
+            method = 'PUT';
+            bodyData = { amount: amount };
+        } else {
+            // THÊM: Gửi đầy đủ thông tin (POST)
+            url = '/budgets/';
+            method = 'POST';
+            bodyData = {
+                month: parseInt(document.getElementById('month').value),
+                year: parseInt(document.getElementById('year').value),
+                category_id: parseInt(document.getElementById('category_id').value),
+                amount: amount
+            };
+        }
+
+        // Gọi API
         await api.request(url, {
             method: method,
-            body: JSON.stringify(data)
+            body: JSON.stringify(bodyData)
         });
         
-        alert(isEdit ? 'Cập nhật thành công!' : 'Thêm thành công!');
+        // Thành công
+        const modalEl = document.getElementById('budgetModal');
+        const modal = bootstrap.Modal.getInstance(modalEl);
+        if (modal) modal.hide(); // Đóng modal
         
-        // Đóng modal và tải lại dữ liệu
-        const modal = bootstrap.Modal.getInstance(document.getElementById('budgetModal'));
-        if (modal) modal.hide();
-        loadBudgets();
-        
+        await loadBudgets(); // Tải lại bảng
+        alert(isEdit ? 'Cập nhật thành công!' : 'Thêm mới thành công!');
+
     } catch (e) {
+        console.error(e);
         alert('Lỗi: ' + e.message);
     }
 }
 
-// Xử lý Xóa
+// Xử lý XÓA
 window.deleteBudget = async (id) => {
-    if(!confirm("Xác nhận xóa ngân sách này?")) return;
+    if(!confirm("Bạn có chắc muốn xóa ngân sách này?")) return;
+    
     try {
         await api.request(`/budgets/${id}`, { method: 'DELETE' });
-        alert('Đã xóa thành công!');
-        loadBudgets();
+        await loadBudgets(); // Tải lại bảng sau khi xóa
     } catch (e) { 
         alert('Lỗi khi xóa: ' + e.message); 
     }
 };
 
-// Hàm định dạng tiền tệ
 function formatMoney(amount) {
     return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount);
 }

@@ -60,20 +60,44 @@
             </div>
             <div class="modal-body">
                 <form id="budgetForm">
-                    <input type="hidden" id="budgetId">
-                    
-                    <div class="mb-3">
-                        <label class="form-label">Danh mục (chỉ Chi tiêu)</label>
-                        <select id="category_id" class="form-select" required></select>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Hạn mức chi tiêu</label>
-                        <input type="number" id="amount" class="form-control" required placeholder="VD: 2000000">
-                    </div>
-                    <div class="d-grid">
-                        <button type="submit" class="btn btn-success">Lưu Ngân sách</button>
-                    </div>
-                </form>
+    <!-- ID ẩn để biết đang sửa hay thêm mới -->
+    <input type="hidden" id="budgetId">
+
+    <!-- 1. Ô nhập số tiền (Sửa lỗi reading 'value') -->
+    <div class="mb-3">
+        <label class="form-label">Số tiền hạn mức</label>
+        <input type="number" class="form-control" id="amount" required placeholder="Ví dụ: 5000000">
+    </div>
+
+    <!-- 2. Chọn Danh mục (Sửa lỗi setting 'disabled') -->
+    <div class="mb-3">
+        <label class="form-label">Danh mục chi tiêu</label>
+        <select class="form-select" id="category_id" required>
+            <option value="">Đang tải...</option>
+        </select>
+    </div>
+
+    <!-- 3. Chọn Tháng và Năm (Sửa lỗi setting 'disabled') -->
+    <div class="row">
+        <div class="col-6 mb-3">
+            <label class="form-label">Tháng</label>
+            <select class="form-select" id="month" required>
+                <!-- Javascript sẽ điền option vào đây -->
+            </select>
+        </div>
+        <div class="col-6 mb-3">
+            <label class="form-label">Năm</label>
+            <select class="form-select" id="year" required>
+                <!-- Javascript sẽ điền option vào đây -->
+            </select>
+        </div>
+    </div>
+    
+    <div class="modal-footer px-0 pb-0">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+        <button type="submit" class="btn btn-primary">Lưu</button>
+    </div>
+</form>
             </div>
         </div>
     </div>
@@ -89,10 +113,14 @@
         document.querySelector('.overlay').classList.toggle('active');
     }
     // Logout logic
-    document.getElementById('logoutBtn').addEventListener('click', () => {
-        localStorage.removeItem('accessToken');
+    const logoutBtn = document.getElementById('logoutBtn');
+if (logoutBtn) { // Chỉ chạy lệnh nếu nút tồn tại
+    logoutBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        localStorage.removeItem('access_token'); // Hoặc 'accessToken' tùy code bạn
         window.location.href = './login.html';
     });
+}
     
     // Logic tải thông tin user (nên được gọi từ API)
     document.addEventListener('DOMContentLoaded', async () => {
