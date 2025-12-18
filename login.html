@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đăng nhập - Ví Vàng</title>
+    <link rel="stylesheet" href="./assets/css/style.css">
+</head>
+<body>
+    <div class="auth-container">
+        <div class="auth-form">
+            <h1>Ví Vàng</h1>
+            <h2>Đăng nhập</h2>
+            <form id="loginForm">
+                <div class="form-group">
+                    <label for="username">Tên đăng nhập</label>
+                    <input type="text" id="username" required>
+                </div>
+                <div class="form-group">
+                    <label for="password">Mật khẩu</label>
+                    <input type="password" id="password" required>
+                </div>
+                <button type="submit" class="btn">Đăng nhập</button>
+                <p id="error-message" class="error-message"></p>
+            </form>
+            <p class="switch-form">Chưa có tài khoản? <a href="./register.html">Đăng ký ngay</a></p>
+        </div>
+    </div>
+    
+    <!-- Nhúng các file JS -->
+    <script src="./assets/js/api.js"></script>
+    <script src="./assets/js/auth.js"></script>
+</body>
+</html>

@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản Lý Danh Mục - Ví Vàng</title>
+    <link rel="icon" href="favicon.svg" type="image/svg+xml">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="./assets/css/style.css">
+</head>
+<body>
+
+<div id="sidebar-root"></div>
+
+    <script src="./assets/js/sidebar-loader.js"></script>
+    <div class="overlay" onclick="toggleSidebar()"></div>
+
+    <div class="main-content">
+        <div class="d-flex align-items-center d-md-none mb-3">
+            <i class="fas fa-bars menu-toggle me-3" onclick="toggleSidebar()"></i>
+            <span class="fs-4 fw-bold">Quản lý Danh mục</span>
+        </div>
+
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>Quản lý Danh mục</h2>
+            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#categoryModal" onclick="prepareAddMode()">
+                <i class="fas fa-plus"></i> Thêm danh mục
+            </button>
+        </div>
+
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th style="width: 80px;" class="text-center">Icon</th>
+                                <th>Tên danh mục</th>
+                                <th>Loại</th>
+                                <th class="text-center" style="width: 150px;">Hành động</th>
+                            </tr>
+                        </thead>
+                        <tbody id="category-table-body">
+                            </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+<div class="modal fade" id="categoryModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalTitle">Thêm Danh Mục</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="categoryForm">
+                    <input type="hidden" id="categoryId">
+                    <div class="mb-3">
+                        <label class="form-label">Tên danh mục</label>
+                        <input type="text" id="name" class="form-control" required placeholder="VD: Ăn uống">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Loại danh mục</label>
+                        <select id="catType" class="form-select">
+                            <option value="EXPENSE">Chi tiêu (Đỏ)</option>
+                            <option value="INCOME">Thu nhập (Xanh)</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Biểu tượng (Icon)</label>
+                        <div class="input-group">
+                            <span class="input-group-text">Emoji</span>
+                            <input type="text" id="icon" class="form-control" placeholder="VD: 🍔">
+                        </div>
+                        <div class="form-text">Mẹo: Nhấn <b>Windows + . (dấu chấm)</b> để chọn nhanh Emoji.</div>
+                    </div>
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-success">Lưu lại</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="toast-container position-fixed bottom-0 end-0 p-3">
+    <div id="liveToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="toast-header">
+            <strong class="me-auto" id="toastTitle">Thông báo</strong>
+            <button type="button" class="btn-close" data-bs-dismiss="toast"></button>
+        </div>
+        <div class="toast-body" id="toastMessage">
+            Nội dung thông báo
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="./assets/js/api.js"></script>
+<script src="./assets/js/categories.js"></script>
+<script>
+    function toggleSidebar() {
+        document.querySelector('.sidebar').classList.toggle('active');
+        document.querySelector('.overlay').classList.toggle('active');
+    }
+    // Logic chung cho logout và tải thông tin user (nên có trong app.js, nhưng thêm tạm ở đây)
+    document.addEventListener('DOMContentLoaded', async () => {
+        // Load user info (tương tự như trong profile.js)
+        try {
+            const user = await api.request('/users/me');
+            document.getElementById('user-name-display').textContent = user.full_name || user.username;
+            const avatarUrl = `https://ui-avatars.com/api/?name=${user.full_name || user.username}&background=random&color=fff`;
+            document.getElementById('user-avatar').src = avatarUrl;
+        } catch (e) {
+            // Xử lý lỗi tải user info
+        }
+
+        // Logout logic
+        document.getElementById('logoutBtn').addEventListener('click', () => {
+            localStorage.removeItem('accessToken');
+            window.location.href = './login.html';
+        });
+    });
+</script>
+</body>
+</html>

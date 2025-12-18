@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Theo Dõi Đầu Tư - Ví Vàng</title>
+    <link rel="icon" href="favicon.svg" type="image/svg+xml">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="./assets/css/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+<div class="d-flex">
+    <div id="sidebar-root"></div>
+
+    <script src="./assets/js/sidebar-loader.js"></script>
+
+    <div class="overlay" onclick="toggleSidebar()"></div>
+
+    <div class="flex-grow-1 main-content">
+        <div class="d-flex align-items-center d-md-none mb-3">
+            <i class="fas fa-bars menu-toggle me-3" onclick="toggleSidebar()"></i>
+            <span class="fs-4 fw-bold">Ví Vàng</span>
+        </div>
+
+        <div class="tradingview-widget-container mb-4">
+            <div class="tradingview-widget-container__widget"></div>
+            <div class="tradingview-widget-copyright"><a href="https://www.tradingview.com/markets/" rel="noopener nofollow" target="_blank"><span class="blue-text">Ticker tape</span></a><span class="trademark"> by TradingView</span></div>
+            <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-ticker-tape.js" async>
+            {
+            "symbols"; [
+                { "proName": "HOSE:FPT", "title": "HOSE:FPT" },
+                { "proName": "HOSE:ACB", "title": "HOSE:ACB" },
+                { "proName": "HNX:VCS", "title": "HNX:VCS" },
+                { "proName": "TVC:GOLD", "title": "GOLD" },
+                { "proName": "BITSTAMP:BTCUSD", "title": "BTCUSD" }
+            ],
+            "colorTheme"; "light",
+            "locale"; "en",
+            "largeChartUrl"; "",
+            "isTransparent"; false,
+            "showSymbolLogo"; true,
+            "displayMode"; "adaptive"
+            }
+            </script>
+        </div>
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="h2">Theo dõi Danh mục Đầu tư</h2>
+            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#investmentModal" onclick="prepareAddMode()">
+                <i class="fas fa-plus"></i> Thêm Khoản Đầu Tư
+            </button>
+        </div>
+        
+        <div class="row mb-4">
+            <div class="col-md-4">
+                <div class="card card-stat bg-gradient-primary text-white">
+                    <div class="card-body">
+                        <h5>Tổng Vốn Đầu Tư</h5>
+                        <h3 id="total-initial">...</h3>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card card-stat bg-gradient-info text-white">
+                    <div class="card-body">
+                        <h5>Giá trị Hiện tại</h5>
+                        <h3 id="total-current">...</h3>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card card-stat text-white" id="total-profit-card">
+                    <div class="card-body">
+                        <h5>Tổng Lời/Lỗ</h5>
+                        <h3 id="total-profit">...</h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="investmentList" class="row">
+            </div>
+    </div>
+</div>
+
+<div class="modal fade" id="investmentModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header"><h5 class="modal-title" id="investmentModalTitle">Thêm Đầu Tư</h5></div>
+            <div class="modal-body">
+                <form id="investmentForm">
+                    <input type="hidden" id="investmentId">
+                    <div class="mb-3">
+                        <label class="form-label">Tên khoản đầu tư (VD: Cổ phiếu FPT)</label>
+                        <input type="text" id="name" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Loại (VD: Cổ phiếu, Vàng)</label>
+                        <input type="text" id="type" class="form-control">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Vốn ban đầu</label>
+                        <input type="number" id="initial_value" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Ngày bắt đầu</label>
+                        <input type="date" id="start_date" class="form-control" required>
+                    </div>
+                    <button type="submit" class="btn btn-success w-100">Lưu</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="detailModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="detailModalTitle">Chi tiết Đầu tư</h5>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-7">
+                        <h6>Lịch sử Giá trị</h6>
+                        <div style="height: 300px; position: relative;"><canvas id="historyChart"></canvas></div>
+                    </div>
+                    <div class="col-md-5">
+                        <h6>Cập nhật Giá trị mới</h6>
+                        <form id="updateValueForm">
+                            <input type="hidden" id="detailInvestmentId">
+                            <div class="mb-3">
+                                <label class="form-label">Giá trị hiện tại MỚI</label>
+                                <input type="number" id="current_value" class="form-control" required>
+                            </div>
+                            <button type="submit" class="btn btn-primary w-100">Cập nhật</button>
+                        </form>
+                        <hr>
+                        <h6>Thông tin</h6>
+                        <p><strong>Vốn ban đầu:</strong> <span id="detailInitialValue"></span></p>
+                        <p><strong>Lời/Lỗ:</strong> <span id="detailProfitLoss"></span></p>
+                        </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="./assets/js/api.js"></script>
+<script src="./assets/js/investments.js"></script>
+<script>
+    // Hàm toggleSidebar (cần được định nghĩa trong style.js hoặc global scope)
+    function toggleSidebar() { 
+        document.querySelector('.sidebar').classList.toggle('active');
+        document.querySelector('.overlay').classList.toggle('active');
+    }
+    
+    // Logic tải thông tin user (Shared user info logic)
+    document.addEventListener('DOMContentLoaded', async () => {
+        try {
+            // Lưu ý: Thay đổi /user/info bằng /users/me hoặc dùng AuthManager nếu đã áp dụng
+            const user = await api.request('/users/me'); 
+            document.getElementById('user-name-display').textContent = user.username || 'User';
+            document.getElementById('user-avatar').src = `https://ui-avatars.com/api/?name=${user.username}&background=333&color=fff&size=32`;
+        } catch (e) {
+            document.getElementById('user-name-display').textContent = 'Khách';
+        }
+
+        document.getElementById('logoutBtn').addEventListener('click', (e) => {
+            e.preventDefault();
+            // Logic đăng xuất
+            // api.logout(); 
+            // window.location.href = 'login.html'; 
+            alert('Chức năng đăng xuất chưa được triển khai.');
+        });
+    });
+
+    // Hàm prepareAddMode cần được định nghĩa global để dùng trong onclick
+    window.prepareAddMode = function() {
+        document.getElementById('investmentForm').reset();
+        document.getElementById('investmentId').value = '';
+        document.getElementById('investmentModalTitle').textContent = "Thêm Khoản Đầu Tư";
+        document.getElementById('start_date').value = new Date().toISOString().split('T')[0];
+    }
+</script>
+</body>
+</html>

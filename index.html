@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản Lý Chi Tiêu - Admin Dashboard</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="./assets/css/style.css">
+    
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    </head>
+<body>
+
+    <div id="sidebar-root"></div>
+
+    <script src="./assets/js/sidebar-loader.js"></script>
+
+    <div class="overlay" onclick="toggleSidebar()"></div>
+
+    <div class="main-content">
+        
+        <div class="d-flex align-items-center d-md-none mb-3">
+            <i class="fas fa-bars menu-toggle me-3" onclick="toggleSidebar()"></i>
+            <span class="fs-4 fw-bold">Ví Vàng</span>
+        </div>
+
+        <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+            <h1 class="h2">Tổng quan tài chính</h1>
+        </div>
+
+        <div class="row mb-4">
+            <div class="col-md-3 col-6 mb-3">
+                <div class="card card-stat bg-primary text-white p-3 h-100">
+                    <h5>Tổng số dư</h5>
+                    <h3 id="total-balance">...</h3>
+                </div>
+            </div>
+            <div class="col-md-3 col-6 mb-3">
+                <div class="card card-stat bg-success text-white p-3 h-100">
+                    <h5>Thu nhập tháng</h5>
+                    <h3 id="month-income">...</h3>
+                </div>
+            </div>
+            <div class="col-md-3 col-6 mb-3">
+                <div class="card card-stat bg-danger text-white p-3 h-100">
+                    <h5>Chi tiêu tháng</h5>
+                    <h3 id="month-expense">...</h3>
+                </div>
+            </div>
+            <div class="col-md-3 col-6 mb-3">
+                <div class="card card-stat bg-warning text-dark p-3 h-100">
+                    <h5>Ngân sách còn lại</h5>
+                    <h3 id="budget-left">...</h3>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card shadow-sm">
+                    <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">Xu hướng dòng tiền</h5>
+                        
+                        <div class="btn-group" role="group">
+                            <button type="button" class="btn btn-outline-primary btn-sm btn-time-filter" data-range="day" onclick="loadDashboard('day', this)">Hôm nay</button>
+                            
+                            <button type="button" class="btn btn-outline-primary btn-sm btn-time-filter" data-range="week" onclick="loadDashboard('week', this)">Tuần này</button>
+                            
+                            <button type="button" class="btn btn-outline-primary btn-sm btn-time-filter active" data-range="month" onclick="loadDashboard('month', this)">Tháng này</button>
+                        </div>
+                        </div>
+                    <div class="card-body" style="height: 300px; position: relative;">
+                        <canvas id="lineChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mb-4">
+            <div class="col-md-4 mb-3">
+                <div class="card shadow-sm h-100">
+                    <div class="card-header bg-white text-center"><h6>Tổng Thu vs Chi</h6></div>
+                    <div class="card-body" style="height: 250px; position: relative;">
+                        <canvas id="pieTotal"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-3">
+                <div class="card shadow-sm h-100">
+                    <div class="card-header bg-white text-center"><h6>Danh mục Chi tiêu</h6></div>
+                    <div class="card-body" style="height: 250px; position: relative;">
+                        <canvas id="pieExpense"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-3">
+                <div class="card shadow-sm h-100">
+                    <div class="card-header bg-white text-center"><h6>Danh mục Thu nhập</h6></div>
+                    <div class="card-body" style="height: 250px; position: relative;">
+                        <canvas id="pieIncome"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card shadow-sm">
+                    <div class="card-header bg-white">
+                        <h5 class="mb-0">Theo dõi Ngân sách (Tháng này)</h5>
+                    </div>
+                    <div class="card-body" style="height: 300px; position: relative;">
+                        <canvas id="budgetChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="./assets/js/api.js"></script>
+    <script src="./assets/js/app.js"></script>
+    <script>
+        function toggleSidebar() {
+            document.querySelector('.sidebar').classList.toggle('active');
+            document.querySelector('.overlay').classList.toggle('active');
+        }
+    </script>
+</body>
+</html>

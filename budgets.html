@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kế Hoạch Ngân Sách - Ví Vàng</title>
+    <link rel="icon" href="favicon.svg" type="image/svg+xml">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="./assets/css/style.css">
+</head>
+<body>
+
+<div class="d-flex">
+    <div id="sidebar-root"></div>
+
+    <script src="./assets/js/sidebar-loader.js"></script>
+
+    <div class="overlay" onclick="toggleSidebar()"></div>
+
+    <div class="flex-grow-1 main-content">
+        <div class="d-flex align-items-center d-md-none mb-3">
+            <i class="fas fa-bars menu-toggle me-3" onclick="toggleSidebar()"></i>
+            <span class="fs-4 fw-bold">Ví Vàng</span>
+        </div>
+
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>Kế hoạch Ngân sách (Tháng này)</h2>
+            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#budgetModal" onclick="prepareAddMode()">
+                <i class="fas fa-plus"></i> Tạo Ngân sách mới
+            </button>
+        </div>
+
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <table class="table table-hover align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Danh mục</th>
+                            <th class="text-end">Hạn mức</th>
+                            <th class="text-end">Đã chi</th>
+                            <th>Tiến độ</th>
+                            <th class="text-center" style="width: 150px;">Hành động</th>
+                        </tr>
+                    </thead>
+                    <tbody id="budget-table-body">
+                        </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="budgetModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalTitle">Tạo Ngân sách</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="budgetForm">
+                    <input type="hidden" id="budgetId">
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Danh mục (chỉ Chi tiêu)</label>
+                        <select id="category_id" class="form-select" required></select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Hạn mức chi tiêu</label>
+                        <input type="number" id="amount" class="form-control" required placeholder="VD: 2000000">
+                    </div>
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-success">Lưu Ngân sách</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="./assets/js/api.js"></script>
+<script src="./assets/js/budgets.js"></script>
+<script>
+    function toggleSidebar() {
+        document.querySelector('.sidebar').classList.toggle('active');
+        document.querySelector('.overlay').classList.toggle('active');
+    }
+    // Logout logic
+    document.getElementById('logoutBtn').addEventListener('click', () => {
+        localStorage.removeItem('accessToken');
+        window.location.href = './login.html';
+    });
+    
+    // Logic tải thông tin user (nên được gọi từ API)
+    document.addEventListener('DOMContentLoaded', async () => {
+        const token = localStorage.getItem('accessToken');
+        if (token) {
+            try {
+                const user = await api.request('/users/me/');
+                document.getElementById('user-name-display').textContent = user.username || user.email;
+            } catch (e) {
+                console.error("Lỗi tải thông tin user:", e);
+                window.location.href = './login.html';
+            }
+        } else {
+            window.location.href = './login.html';
+        }
+    });
+</script>
+</body>
+</html>

@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Báo Cáo Chi Tiết - Ví Vàng</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="./assets/css/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+<div class="d-flex">
+    <div id="sidebar-root"></div>
+
+    <script src="./assets/js/sidebar-loader.js"></script>
+    
+    <div class="overlay" onclick="toggleSidebar()"></div>
+
+    <div class="flex-grow-1 main-content">
+        <div class="d-flex align-items-center d-md-none mb-3">
+            <i class="fas fa-bars menu-toggle me-3" onclick="toggleSidebar()"></i>
+            <span class="fs-4 fw-bold">Ví Vàng</span>
+        </div>
+
+        <h2 class="mb-4">Báo Cáo Chi Tiết</h2>
+
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-white">
+                <h5 class="mb-0"><i class="fas fa-filter me-2"></i>Tùy chọn Báo cáo</h5>
+            </div>
+            <div class="card-body">
+                <form id="reportForm" class="row g-3 align-items-end">
+                    <div class="col-md-3">
+                        <label class="form-label">Từ ngày</label>
+                        <input type="date" id="start_date" class="form-control" required>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Đến ngày</label>
+                        <input type="date" id="end_date" class="form-control" required>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Tài khoản</label>
+                        <select id="account_filter" class="form-select">
+                            <option value="">Tất cả tài khoản</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <button type="submit" class="btn btn-primary w-100"><i class="fas fa-eye"></i> Xem Báo cáo</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div id="reportContent" class="d-none">
+
+            <div class="row mb-4">
+                <div class="col-md-4">
+                    <div class="card card-stat bg-gradient-success text-white">
+                        <div class="card-body">
+                            <h5>Tổng Thu Nhập</h5>
+                            <h3 id="summary-income">0 đ</h3>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card card-stat bg-gradient-danger text-white">
+                        <div class="card-body">
+                            <h5>Tổng Chi Tiêu</h5>
+                            <h3 id="summary-expense">0 đ</h3>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card card-stat text-white" id="net-balance-card">
+                        <div class="card-body">
+                            <h5>Số Dư Ròng</h5>
+                            <h3 id="summary-net">0 đ</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-white"><h5 class="mb-0">Dòng tiền theo ngày</h5></div>
+                <div class="card-body" style="height: 300px; position: relative;"><canvas id="reportLineChart"></canvas></div>
+            </div>
+
+            <div class="row">
+                <div class="col-lg-6 mb-4">
+                    <div class="card shadow-sm h-100">
+                        <div class="card-header bg-white"><h5 class="mb-0">Phân tích Chi tiêu</h5></div>
+                        <div class="card-body">
+                            <div style="height: 250px; position: relative;"><canvas id="reportPieExpense"></canvas></div>
+                            <hr>
+                            <table class="table table-sm">
+                                <thead id="expense-table-head"></thead>
+                                <tbody id="expense-table-body"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-6 mb-4">
+                       <div class="card shadow-sm h-100">
+                            <div class="card-header bg-white"><h5 class="mb-0">Phân tích Thu nhập</h5></div>
+                            <div class="card-body">
+                                <div style="height: 250px; position: relative;"><canvas id="reportPieIncome"></canvas></div>
+                                <hr>
+                                <table class="table table-sm">
+                                    <thead id="income-table-head"></thead>
+                                    <tbody id="income-table-body"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                </div>
+            </div>
+        </div>
+        
+        <div id="loadingState" class="text-center py-5 d-none">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <p class="mt-2">Đang tải dữ liệu báo cáo...</p>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="./assets/js/api.js"></script>
+<script src="./assets/js/reports.js"></script>
+<script>
+    function toggleSidebar() {
+        document.querySelector('.sidebar').classList.toggle('active');
+        document.querySelector('.overlay').classList.toggle('active');
+    }
+    // Shared user info logic
+    document.addEventListener('DOMContentLoaded', async () => {
+        try {
+            const user = await api.request('/users/me');
+            const userDisplay = user.full_name || user.username;
+            document.getElementById('user-name-display').textContent = userDisplay;
+            document.getElementById('user-avatar').src = `https://ui-avatars.com/api/?name=${userDisplay}&background=random&color=fff`;
+            document.getElementById('logoutBtn').addEventListener('click', () => {
+                localStorage.removeItem('accessToken');
+                window.location.href = './login.html';
+            });
+        } catch(e) {
+            // Redirect if not logged in
+            if (e.status === 401) window.location.href = './login.html';
+        }
+    });
+</script>
+</body>
+</html>

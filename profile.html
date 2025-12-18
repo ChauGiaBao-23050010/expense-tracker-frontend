@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hồ Sơ Của Tôi - Ví Vàng Admin</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="./assets/css/style.css">
+
+    </head>
+<body>
+
+    <div id="sidebar-root"></div>
+
+    <script src="./assets/js/sidebar-loader.js"></script>
+
+    <div class="overlay" onclick="toggleSidebar()"></div>
+
+    <div class="main-content">
+        
+        <div class="d-flex align-items-center d-md-none mb-4 pb-2 border-bottom">
+            <i class="fas fa-bars menu-toggle me-3" onclick="toggleSidebar()"></i>
+            <span class="fs-4 fw-bold text-dark">Hồ Sơ Của Tôi</span>
+        </div>
+
+        <div class="d-none d-md-block mb-4">
+            <h2><i class="fas fa-user-circle me-2 text-primary"></i> Hồ Sơ Của Tôi</h2>
+            <p class="text-muted">Quản lý thông tin cá nhân và bảo mật tài khoản.</p>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6 mb-4">
+                <div class="card shadow-sm h-100 border-0">
+                    <div class="card-header bg-white border-bottom-0 pt-4 px-4">
+                        <h5 class="mb-0 fw-bold text-primary"><i class="fas fa-id-card me-2"></i>Thông tin tài khoản</h5>
+                    </div>
+                    <div class="card-body px-4 pb-4">
+                        <form id="profileForm">
+                            <div class="mb-3">
+                                <label class="form-label text-muted small fw-bold">TÊN ĐĂNG NHẬP</label>
+                                <input type="text" id="username" class="form-control bg-light" disabled>
+                                <div class="form-text">Tên đăng nhập không thể thay đổi.</div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label text-muted small fw-bold">EMAIL</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-white"><i class="fas fa-envelope text-secondary"></i></span>
+                                    <input type="email" id="email" class="form-control" placeholder="Nhập email của bạn">
+                                </div>
+                            </div>
+                            <div class="mb-4">
+                                <label class="form-label text-muted small fw-bold">HỌ TÊN ĐẦY ĐỦ</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-white"><i class="fas fa-user text-secondary"></i></span>
+                                    <input type="text" id="fullName" class="form-control" placeholder="Nhập họ tên hiển thị">
+                                </div>
+                            </div>
+                            <button type="submit" class="btn btn-primary w-100">
+                                <i class="fas fa-save me-2"></i> Cập nhật thông tin
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6 mb-4">
+                <div class="card shadow-sm h-100 border-0">
+                    <div class="card-header bg-white border-bottom-0 pt-4 px-4">
+                        <h5 class="mb-0 fw-bold text-warning"><i class="fas fa-key me-2"></i>Đổi mật khẩu</h5>
+                    </div>
+                    <div class="card-body px-4 pb-4">
+                        <form id="passwordForm">
+                            <div class="mb-3">
+                                <label class="form-label text-muted small fw-bold">MẬT KHẨU HIỆN TẠI</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-white"><i class="fas fa-lock text-secondary"></i></span>
+                                    <input type="password" id="currentPassword" class="form-control" placeholder="Mật khẩu hiện tại" required>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label text-muted small fw-bold">MẬT KHẨU MỚI</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-white"><i class="fas fa-unlock text-secondary"></i></span>
+                                    <input type="password" id="newPassword" class="form-control" placeholder="Mật khẩu mới (ít nhất 6 ký tự)" required>
+                                </div>
+                            </div>
+                            <div class="mb-4">
+                                <label class="form-label text-muted small fw-bold">NHẬP LẠI MẬT KHẨU MỚI</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-white"><i class="fas fa-check text-secondary"></i></span>
+                                    <input type="password" id="confirmNewPassword" class="form-control" placeholder="Xác nhận mật khẩu mới" required>
+                                </div>
+                            </div>
+                            <button type="submit" class="btn btn-warning w-100">
+                                <i class="fas fa-sync-alt me-2"></i> Đổi mật khẩu
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+<div class="toast-container position-fixed bottom-0 end-0 p-3">
+    <div id="liveToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="toast-header">
+            <strong class="me-auto" id="toastTitle">Thông báo</strong>
+            <button type="button" class="btn-close" data-bs-dismiss="toast"></button>
+        </div>
+        <div class="toast-body" id="toastMessage">
+            Nội dung thông báo
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="./assets/js/api.js"></script>
+<script src="./assets/js/app.js"></script>
+<script>
+    // Hàm toggleSidebar cho mobile
+    function toggleSidebar() {
+        document.querySelector('.sidebar').classList.toggle('active');
+        document.querySelector('.overlay').classList.toggle('active');
+    }
+
+    // Tự động thêm class 'active' cho link menu "Hồ sơ"
+    document.addEventListener('DOMContentLoaded', () => {
+        const profileLink = document.querySelector('a[href="profile.html"]');
+        if (profileLink) {
+            profileLink.classList.add('active');
+        }
+    });
+
+</script>
+</body>
+</html>

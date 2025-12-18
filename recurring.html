@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản Lý Chi Tiêu Định Kỳ - Ví Vàng</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { background-color: #f8f9fa; }
+        .sidebar { 
+            min-height: 100vh; 
+            background: #2c3e50; 
+            color: white; 
+            transition: transform 0.3s ease;
+        }
+        .sidebar a { color: #bdc3c7; text-decoration: none; padding: 15px; display: block; border-bottom: 1px solid #34495e; }
+        .sidebar a:hover, .sidebar a.active { background: #34495e; color: white; border-left: 4px solid #1abc9c; }
+        .main-content { padding: 20px; }
+        .text-expense { color: #dc3545; font-weight: bold; }
+        .text-income { color: #198754; font-weight: bold; }
+        .text-transfer { color: #6c757d; font-weight: bold; }
+        .text-active { color: #1abc9c; font-weight: bold; }
+        .text-inactive { color: #f39c12; font-weight: bold; }
+
+        /* CSS BỔ SUNG CHO MOBILE MENU */
+        .overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1040; 
+        }
+        .overlay.active {
+            display: block;
+        }
+        .menu-toggle {
+            cursor: pointer;
+            font-size: 1.5rem;
+            margin-right: 15px;
+        }
+
+        @media (max-width: 767.98px) {
+            .sidebar {
+                position: fixed;
+                z-index: 1045;
+                transform: translateX(-100%);
+            }
+            .sidebar.active {
+                transform: translateX(0);
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="d-flex">
+    <div id="sidebar-root"></div>
+
+    <script src="./assets/js/sidebar-loader.js"></script>
+    
+    <div class="overlay" onclick="toggleSidebar()"></div>
+
+    <div class="flex-grow-1 main-content">
+        
+        <div class="d-flex align-items-center d-md-none mb-3">
+            <i class="fas fa-bars menu-toggle" onclick="toggleSidebar()"></i>
+            <span class="fs-4 fw-bold">Ví Vàng</span>
+        </div>
+
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>Quản lý Giao dịch Định kỳ</h2>
+            <div>
+                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#recurringTransactionModal" onclick="prepareAddMode()">
+                    <i class="fas fa-plus"></i> Thêm chi tiêu định kỳ
+                </button>
+            </div>
+        </div>
+
+        <div class="card shadow-sm mb-4">
+            <div class="card-body">
+                <form id="filterForm" class="row g-3">
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold">Tìm kiếm</label>
+                        <input type="text" id="filter_search" class="form-control" placeholder="Nhập mô tả...">
+                    </div>
+                    
+                    <div class="col-md-3">
+                        <label class="form-label fw-bold">Loại</label>
+                        <select id="filter_type" class="form-select">
+                            <option value="">Tất cả</option>
+                            <option value="EXPENSE">Chi tiêu</option>
+                            <option value="INCOME">Thu nhập</option>
+                            <option value="TRANSFER">Chuyển tiền</option>
+                        </select>
+                    </div>
+                    
+                    <div class="col-md-3">
+                        <label class="form-label fw-bold">Tần suất</label>
+                        <select id="filter_frequency" class="form-select">
+                            <option value="">Tất cả</option>
+                            <option value="DAILY">Hàng ngày</option>
+                            <option value="WEEKLY">Hàng tuần</option>
+                            <option value="MONTHLY">Hàng tháng</option>
+                            <option value="YEARLY">Hàng năm</option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-2">
+                        <label class="form-label fw-bold">Trạng thái</label>
+                        <select id="filter_status" class="form-select">
+                            <option value="">Tất cả</option>
+                            <option value="true">Đang bật</option>
+                            <option value="false">Đã tắt</option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-6 d-flex align-items-end">
+                        <button type="submit" class="btn btn-primary me-2 w-100"><i class="fas fa-filter"></i> Lọc</button>
+                        <button type="button" class="btn btn-secondary w-100" onclick="resetFilters()"><i class="fas fa-sync"></i> Làm mới</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Mô tả</th>
+                                <th>Tài khoản</th>
+                                <th class="text-end">Số tiền</th>
+                                <th>Tần suất</th>
+                                <th>Ngày bắt đầu</th>
+                                <th>Ngày chạy tiếp theo</th>
+                                <th class="text-center">Trạng thái</th>
+                                <th class="text-center">Hành động</th>
+                            </tr>
+                        </thead>
+                        <tbody id="recurring-transaction-table-body">
+                            </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="recurringTransactionModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalTitle">Thêm Giao Dịch Định Kỳ</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="recurringForm">
+                    <input type="hidden" id="recurringId">
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Số tiền</label>
+                        <input type="number" id="amount" class="form-control" required placeholder="VD: 1000000" min="1">
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Loại giao dịch</label>
+                        <select id="type" class="form-select"> 
+                            <option value="EXPENSE">Chi tiêu (Đỏ)</option>
+                            <option value="INCOME">Thu nhập (Xanh)</option>
+                            <option value="TRANSFER">Chuyển tiền nội bộ (Xám)</option>
+                        </select>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Từ Tài khoản</label>
+                            <select id="source_account_id" class="form-select" required></select>
+                        </div>
+
+                        <div class="col-md-6 mb-3" id="group_category"> 
+                            <label class="form-label">Danh mục</label>
+                            <select id="category_id" class="form-select"></select>
+                            <small class="form-text text-muted">Tùy chọn cho Thu/Chi.</small>
+                        </div>
+
+                        <div class="col-md-6 mb-3" id="group_destination" style="display: none;"> 
+                            <label class="form-label">Đến Tài khoản</label>
+                            <select id="destination_account_id" class="form-select"></select>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Mô tả</label>
+                        <input type="text" id="description" class="form-control" placeholder="VD: Tiền nhà trọ">
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Tần suất</label>
+                            <select id="frequency" class="form-select">
+                                <option value="DAILY">Hàng ngày</option>
+                                <option value="WEEKLY">Hàng tuần</option>
+                                <option value="MONTHLY" selected>Hàng tháng</option>
+                                <option value="YEARLY">Hàng năm</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Ngày bắt đầu</label>
+                            <input type="date" id="start_date" class="form-control" required>
+                        </div>
+                    </div>
+
+                    <div class="mb-3 form-check">
+                        <input type="checkbox" class="form-check-input" id="is_active" checked>
+                        <label class="form-check-label" for="is_active">Đang hoạt động</label>
+                    </div>
+
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-success">Lưu lại</button>
+                    </div>
+                </form>
+                </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="./assets/js/api.js"></script> 
+<script src="./assets/js/app.js"></script>
+<script src="./assets/js/recurring.js"></script> 
+<script>
+    // Hàm mới được thêm vào để điều khiển menu
+    function toggleSidebar() {
+        document.querySelector('.sidebar').classList.toggle('active');
+        document.querySelector('.overlay').classList.toggle('active');
+    }
+    
+    // Lưu ý: Hàm toggleTransferUI() được định nghĩa trong recurring.js (window.toggleTransferUI)
+    // và được gọi trong event listener của DOMContentLoaded và onchange của #type.
+    
+    // Logic sidebar cho mobile
+    document.addEventListener('DOMContentLoaded', () => {
+        // Gọi toggleTransferUI() lần đầu để khởi tạo trạng thái EXPENSE
+        // (Điều này đã được xử lý trong recurring.js, không cần gọi lại ở đây)
+        
+        // Sự kiện click nút xóa trong modal (nếu có)
+        const deleteBtn = document.getElementById('btnDelete');
+        if (deleteBtn) {
+            deleteBtn.addEventListener('click', () => {
+                const id = document.getElementById('recurringId').value;
+                if (id) {
+                    window.deleteRecurring(parseInt(id));
+                    // Đóng modal sau khi xóa (nếu thành công)
+                    const modalElement = document.getElementById('recurringTransactionModal');
+                    if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
+                        const modalInstance = bootstrap.Modal.getInstance(modalElement) || new bootstrap.Modal(modalElement);
+                        modalInstance.hide();
+                    }
+                }
+            });
+        }
+    });
+</script>
+</body>
+</html>

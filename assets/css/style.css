@@ -1,0 +1,194 @@
+/* === 1. RESET & BASE (GỘP CẢ AUTH VÀ DASHBOARD) === */
+:root {
+    --sidebar-width: 250px;
+    --header-height: 60px;
+    --primary-color: #2c3e50; /* Màu nền Sidebar/Navbar */
+    --active-color: #1abc9c; /* Màu highlight */
+    --background-color: #f8f9fa;
+}
+
+html, body {
+    height: 100%;
+    margin: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: var(--background-color);
+    overflow-x: hidden; /* Chặn thanh cuộn ngang */
+}
+
+/* --- CSS for Auth Pages (Login/Register) --- */
+/* Ghi đè lại body cho Auth để dùng flexbox căn giữa */
+.auth-container {
+    background-color: white;
+    padding: 40px;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    max-width: 400px;
+}
+
+.auth-form h1, .auth-form h2 { text-align: center; }
+.form-group { margin-bottom: 20px; }
+.form-group label { display: block; margin-bottom: 5px; }
+.form-group input {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    box-sizing: border-box;
+}
+
+.btn {
+    width: 100%;
+    padding: 12px;
+    border: none;
+    border-radius: 4px;
+    background-color: #28a745;
+    color: white;
+    font-size: 16px;
+    cursor: pointer;
+}
+.btn:hover { background-color: #218838; }
+.error-message { color: red; text-align: center; margin-top: 10px; }
+.switch-form { text-align: center; margin-top: 20px; }
+
+/* Chỉ áp dụng Flexbox cho body của trang Auth */
+body:has(.auth-container) {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #f4f7f6;
+}
+/* ------------------------------------------- */
+
+
+/* === 2. SIDEBAR (CỐ ĐỊNH) === */
+.sidebar {
+    position: fixed; /* Ghim chặt vào bên trái */
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: var(--sidebar-width);
+    background: var(--primary-color);
+    color: white;
+    z-index: 1000;
+    overflow-y: auto; /* Cho phép cuộn riêng sidebar nếu menu quá dài */
+    transition: all 0.3s ease; /* Hiệu ứng trượt mượt mà */
+    box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+}
+
+.sidebar a {
+    color: #bdc3c7;
+    text-decoration: none;
+    padding: 15px 20px;
+    display: block;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+    transition: 0.2s;
+}
+
+.sidebar a:hover, .sidebar a.active {
+    background: rgba(255,255,255,0.1);
+    color: white;
+    border-left: 4px solid var(--active-color);
+}
+
+/* === 3. MAIN CONTENT (NỘI DUNG CHÍNH) === */
+.main-content {
+    margin-left: var(--sidebar-width); /* Đẩy nội dung sang phải bằng chiều rộng sidebar */
+    width: calc(100% - var(--sidebar-width)); /* Chiều rộng còn lại */
+    padding: 20px;
+    min-height: 100vh;
+    transition: all 0.3s ease;
+}
+
+/* === 4. FIX LỖI BIỂU ĐỒ (CHART.JS) === */
+/* Quan trọng: Chart.js cần một thẻ bao có position relative để co giãn đúng */
+/* Thêm style này vào .card-body để đảm bảo Chart.js hoạt động tốt */
+.card-body {
+    position: relative; 
+    width: 100%;
+    overflow: hidden; /* Ngăn biểu đồ tràn ra ngoài */
+}
+
+/* Đảm bảo canvas không bị fix cứng chiều cao */
+canvas {
+    width: 100% !important;
+    height: auto !important;
+}
+
+/* === 5. RESPONSIVE (MOBILE) === */
+@media (max-width: 768px) {
+    /* Ẩn sidebar sang trái */
+    .sidebar {
+        left: calc(0px - var(--sidebar-width)); /* Dùng biến để ẩn chuẩn hơn */ 
+    }
+    
+    /* Khi active thì trượt ra */
+    .sidebar.active {
+        left: 0;
+    }
+
+    /* Nội dung tràn ra toàn màn hình */
+    .main-content {
+        margin-left: 0;
+        width: 100%;
+    }
+
+    /* Overlay làm tối màn hình */
+    .overlay {
+        display: none;
+        position: fixed;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: rgba(0,0,0,0.5);
+        z-index: 999;
+    }
+    .overlay.active { display: block; }
+
+    /* Xếp chồng thẻ thống kê trên mobile */
+    .top-section {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* === 6. CÁC CLASS TIỆN ÍCH KHÁC (DASHBOARD) === */
+.menu-toggle {
+    display: block !important; /* Luôn hiện trên mobile */
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: var(--primary-color);
+    /* Riêng trong HTML index.html, nó được thêm vào main-content nên không cần media query */
+}
+
+.card-stat { 
+    border: none; 
+    border-radius: 10px; 
+    color: white; 
+    margin-bottom: 20px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+/* Màu gradient cho thẻ thống kê */
+.bg-gradient-primary { background: linear-gradient(45deg, #4e54c8, #8f94fb); }
+.bg-gradient-success { background: linear-gradient(45deg, #11998e, #38ef7d); }
+.bg-gradient-danger { background: linear-gradient(45deg, #ff416c, #ff4b2b); }
+.bg-gradient-warning { background: linear-gradient(45deg, #f7971e, #ffd200); }
+
+/* Màu chữ thu/chi */
+.text-expense { color: #dc3545; font-weight: bold; }
+.text-income { color: #198754; font-weight: bold; }
+
+/* Styles cũ không dùng nữa (nhưng giữ lại định dạng) */
+.navbar, .nav-container, .dashboard-container, .top-section, .card, .transaction-table, .transaction-table th, .transaction-table td, .amount-expense, .amount-income, .btn-delete, .btn-logout {
+    /* Các style cũ đã được tích hợp hoặc bị ghi đè */
+}
+.transaction-table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+.transaction-table th, .transaction-table td { padding: 12px; border-bottom: 1px solid #eee; text-align: left; }
+.amount-expense { color: #e74c3c; font-weight: bold; } /* Giữ lại màu cho bảng giao dịch */
+.amount-income { color: #27ae60; font-weight: bold; } /* Giữ lại màu cho bảng giao dịch */
+
+.modal {
+    overflow: visible !important;
+}
+
+.modal-dialog {
+    overflow: visible !important;
+}
