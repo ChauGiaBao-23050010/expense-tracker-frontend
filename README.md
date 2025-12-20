@@ -61,5 +61,5 @@
 
 ## 🔗 Liên kết Backend
 
-*   **Backend Repository:** [Link đến GitHub backend của bạn](https://github.com/ChauGiaBao-23050010/expense-tracker-backend)
-*   **Deployed Backend:** [[Link Render backend của bạn](https://expense-tracker-backend-k8er.onrender.com)]
+*   **Backend Repository:** https://github.com/ChauGiaBao-23050010/expense-tracker-backend
+*   **Deployed Backend:** https://expense-tracker-backend-k8er.onrender.com
